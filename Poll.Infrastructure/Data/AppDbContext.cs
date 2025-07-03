@@ -14,6 +14,6 @@ namespace Poll.Infrastructure.Data
         public DbSet<PollEntity> Polls { get; set; } = null!;
         public DbSet<PollOption> PollOptions { get; set; } = null!;
         public DbSet<PollVote> PollVotes { get; set; } = null!;
-
+        public DbSet<UserEntity> Users { get; set; } = null!;
     }
 }

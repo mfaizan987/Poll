@@ -10,5 +10,7 @@ namespace Poll.Domain.Entity
     {
             public Guid PollOptionId { get; set; }
             public PollOption PollOption { get; set; } = null!;
+            public Guid UserId { get; set; }
+            public UserEntity User { get; set; } = null!;
     }
 }

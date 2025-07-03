@@ -6,6 +6,7 @@ using Poll.Application.IRepositories;
 using Poll.Application.Polls.Commands.CreatePoll;
 using Poll.Infrastructure.Data;
 using Poll.Infrastructure.Repositories;
+using Poll.Infrastructure.Services;
 
 public static class InfrastructureServiceRegistration
 {
@@ -14,10 +15,12 @@ public static class InfrastructureServiceRegistration
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("AccountDb")));
 
-        services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
+        services.AddHttpContextAccessor();
+
 
         services.AddScoped<IPollRepository, PollRepository>();
-
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
         return services;
     }
 }

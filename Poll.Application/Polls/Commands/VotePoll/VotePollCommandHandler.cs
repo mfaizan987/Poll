@@ -17,28 +17,38 @@ namespace Poll.Application.Polls.Commands.VotePoll
 
         public async Task<PollDto> Handle(VotePollCommand request, CancellationToken cancellationToken)
         {
-            var option = await _pollRepository.GetPollOptionByIdAsync(request.OptionId, cancellationToken);
+            var option = await _pollRepository.GetPollOptionByIdAsync(request.PollVote.OptionId, cancellationToken);
 
             if (option == null)
                 throw new Exception("Option not found.");
 
+            var user = await _pollRepository.GetUserByIdAsync(request.PollVote.UserId, cancellationToken);
+            if (user == null)
+                throw new Exception("User not found.");
+
             var vote = new PollVote
             {
                 PollOptionId = option.Id,
+                UserId = request.PollVote.UserId,
                 Created_At = DateTime.UtcNow
             };
 
             await _pollRepository.VotePollAsync(vote, cancellationToken);
 
             var poll = await _pollRepository.GetPollByIdAsync(option.PollId, cancellationToken);
-
             if (poll == null)
                 throw new Exception("Poll not found.");
 
             var pollDto = new PollDto
             {
                 Id = poll.Id,
-                Question = poll.Question,
+                UserId = poll.UserId,
+                UserName = poll.UserName,
+                Question = poll.Question ?? "",
+                Description = poll.Description,
+                StartDate = poll.StartDate,
+                EndDate = poll.EndDate,
+                AllowMultipleAnswers = poll.AllowMultipleAnswers,
                 Options = poll.Options.Select(opt => new PollOptionDto
                 {
                     Id = opt.Id,

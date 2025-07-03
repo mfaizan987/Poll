@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Poll.Domain.Entity
 {
     public class PollEntity : BaseEntity
     {
-        public string Question { get; set; } = null!;
+        public Guid UserId { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public string? Question { get; set; }
         public string? Description { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }

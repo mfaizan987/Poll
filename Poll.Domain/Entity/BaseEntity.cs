@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Poll.Domain.Interface;
 
 namespace Poll.Domain.Entity
 {
-    public class BaseEntity
+    public class BaseEntity : ITenantEntity
     {
         public Guid Id { get; set; }
         public DateTime Created_At { get; set; } = DateTime.UtcNow;

@@ -18,7 +18,15 @@ namespace Poll.Application.Mappings
                 .ReverseMap();
 
             CreateMap<PollEntity, PollDto>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName)) // correctly mapped
                 .ForMember(dest => dest.Options, opt => opt.MapFrom(src => src.Options))
+                .ForMember(dest => dest.Question, opt => opt.MapFrom(src => src.Question))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate))
+                .ForMember(dest => dest.AllowMultipleAnswers, opt => opt.MapFrom(src => src.AllowMultipleAnswers))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ReverseMap();
         }
     }

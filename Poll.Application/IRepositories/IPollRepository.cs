@@ -14,6 +14,8 @@ namespace Poll.Application.IRepositories
         Task<List<PollEntity>> GetAllPollsAsync(CancellationToken cancellationToken);
         Task VotePollAsync(PollVote vote, CancellationToken cancellationToken);
         Task<PollOption?> GetPollOptionByIdAsync(Guid optionId, CancellationToken cancellationToken);
+        Task<UserEntity?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken);
+
 
     }
 }

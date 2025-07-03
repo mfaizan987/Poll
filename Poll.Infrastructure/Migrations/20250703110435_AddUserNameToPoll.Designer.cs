@@ -12,8 +12,8 @@ using Poll.Infrastructure.Data;
 namespace Poll.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250702072008_init104")]
-    partial class init104
+    [Migration("20250703110435_AddUserNameToPoll")]
+    partial class AddUserNameToPoll
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,7 +53,6 @@ namespace Poll.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Question")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("StartDate")
@@ -67,6 +66,13 @@ namespace Poll.Infrastructure.Migrations
 
                     b.Property<DateTime>("Updated_At")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("WorkSpaceId")
                         .HasColumnType("uniqueidentifier");
@@ -120,7 +126,7 @@ namespace Poll.Infrastructure.Migrations
                     b.ToTable("PollOptions");
                 });
 
-            modelBuilder.Entity("PollVote", b =>
+            modelBuilder.Entity("Poll.Domain.Entity.PollVote", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -138,9 +144,6 @@ namespace Poll.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("PollId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("PollOptionId")
                         .HasColumnType("uniqueidentifier");
 
@@ -153,7 +156,57 @@ namespace Poll.Infrastructure.Migrations
                     b.Property<DateTime>("Updated_At")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("VoterId")
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("WorkSpaceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PollOptionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PollVotes");
+                });
+
+            modelBuilder.Entity("Poll.Domain.Entity.UserEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("StationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Updated_At")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -162,11 +215,7 @@ namespace Poll.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PollId");
-
-                    b.HasIndex("PollOptionId");
-
-                    b.ToTable("PollVotes");
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Poll.Domain.Entity.PollOption", b =>
@@ -180,30 +229,28 @@ namespace Poll.Infrastructure.Migrations
                     b.Navigation("Poll");
                 });
 
-            modelBuilder.Entity("PollVote", b =>
+            modelBuilder.Entity("Poll.Domain.Entity.PollVote", b =>
                 {
-                    b.HasOne("Poll.Domain.Entity.PollEntity", "Poll")
-                        .WithMany("Votes")
-                        .HasForeignKey("PollId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Poll.Domain.Entity.PollOption", "PollOption")
                         .WithMany("PollVotes")
                         .HasForeignKey("PollOptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Poll");
+                    b.HasOne("Poll.Domain.Entity.UserEntity", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("PollOption");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Poll.Domain.Entity.PollEntity", b =>
                 {
                     b.Navigation("Options");
-
-                    b.Navigation("Votes");
                 });
 
             modelBuilder.Entity("Poll.Domain.Entity.PollOption", b =>

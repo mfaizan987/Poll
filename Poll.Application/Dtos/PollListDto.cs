@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Poll.Application.Dtos
 {
-    public class PollListDto
+    public class PollListDto:BaseDto
     {
         public Guid Id { get; set; }
         public string Question { get; set; } = "";

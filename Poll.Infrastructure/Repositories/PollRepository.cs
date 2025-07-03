@@ -1,23 +1,32 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Poll.Application.Interfaces;
 using Poll.Application.IRepositories;
 using Poll.Domain.Entity;
 using Poll.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace Poll.Infrastructure.Repositories
 {
-    public class PollRepository : IPollRepository
+    public class PollRepository : BaseRepository<PollEntity>, IPollRepository
     {
-        private readonly AppDbContext _context;
-
-        public PollRepository(AppDbContext context)
+        public PollRepository(AppDbContext context, IHttpContextAccessor http)
+            : base(context, http)
         {
-            _context = context;
+        }
+
+        public async Task<PollEntity?> GetPollByIdAsync(Guid pollId, CancellationToken cancellationToken)
+        {
+            return await FilteredQuery()
+                .Include(p => p.Options)
+                .ThenInclude(o => o.PollVotes)
+                .FirstOrDefaultAsync(p => p.Id == pollId, cancellationToken);
+        }
+
+        public async Task<List<PollEntity>> GetAllPollsAsync(CancellationToken cancellationToken)
+        {
+            return await FilteredQuery()
+                .Include(p => p.Options)
+                    .ThenInclude(o => o.PollVotes)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<PollEntity> CreatePollAsync(PollEntity poll, CancellationToken cancellationToken)
@@ -26,24 +35,6 @@ namespace Poll.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return poll;
         }
-
-        public async Task<PollEntity?> GetPollByIdAsync(Guid pollId, CancellationToken cancellationToken)
-        {
-            return await _context.Polls
-                .Include(p => p.Options)
-                .ThenInclude(o => o.PollVotes)
-                .FirstOrDefaultAsync(p => p.Id == pollId && !p.IsDeleted, cancellationToken);
-        }
-
-        public async Task<List<PollEntity>> GetAllPollsAsync(CancellationToken cancellationToken)
-        {
-            return await _context.Polls
-                .Include(p => p.Options)
-                    .ThenInclude(o => o.PollVotes)
-                .Where(p => !p.IsDeleted)
-                .ToListAsync(cancellationToken);
-        }
-
 
         public async Task VotePollAsync(PollVote vote, CancellationToken cancellationToken)
         {
@@ -57,7 +48,10 @@ namespace Poll.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Id == optionId, cancellationToken);
         }
 
-
+        public async Task<UserEntity?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
+        }
     }
-
 }
