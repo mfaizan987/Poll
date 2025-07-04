@@ -28,6 +28,18 @@ namespace Poll.Application.Mappings
                 .ForMember(dest => dest.AllowMultipleAnswers, opt => opt.MapFrom(src => src.AllowMultipleAnswers))
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ReverseMap();
+
+            CreateMap<CreatePollDto, PollEntity>()
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.UserName, opt => opt.Ignore())
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Options, opt => opt.MapFrom(src => src.Options));
+
+            CreateMap<CreatePollOptionDto, PollOption>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.PollId, opt => opt.Ignore())
+                .ForMember(dest => dest.Poll, opt => opt.Ignore())
+                .ForMember(dest => dest.PollVotes, opt => opt.Ignore());
         }
     }
 }

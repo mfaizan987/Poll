@@ -12,14 +12,6 @@ public class BaseRepository<TEntity> where TEntity : BaseEntity
         _context = context;
         _http = http;
     }
-
-    /// <summary>
-    /// Provides a filtered IQueryable including:
-    /// - IsDeleted = false
-    /// - WorkspaceId from header (if provided)
-    /// - StationId from header (if provided)
-    /// - CompanyId from header (if provided)
-    /// </summary>
     protected IQueryable<TEntity> FilteredQuery()
     {
         var workspaceId = GetGuidFromHeader("x-workspace-id");
@@ -33,10 +25,6 @@ public class BaseRepository<TEntity> where TEntity : BaseEntity
             (companyId == null || x.CompanyId == companyId)
         );
     }
-
-    /// <summary>
-    /// Helper to parse GUID from request header
-    /// </summary>
     private Guid? GetGuidFromHeader(string headerName)
     {
         var headerValue = _http.HttpContext?.Request.Headers[headerName].FirstOrDefault();

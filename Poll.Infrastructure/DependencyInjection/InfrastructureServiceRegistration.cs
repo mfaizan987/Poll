@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Poll.Application.Interfaces;
 using Poll.Application.IRepositories;
-using Poll.Application.Polls.Commands.CreatePoll;
 using Poll.Infrastructure.Data;
 using Poll.Infrastructure.Repositories;
 using Poll.Infrastructure.Services;
@@ -20,7 +19,6 @@ public static class InfrastructureServiceRegistration
 
         services.AddScoped<IPollRepository, PollRepository>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        services.AddScoped<IJwtTokenService, JwtTokenService>();
         return services;
     }
 }

@@ -29,5 +29,19 @@ namespace Poll.Infrastructure.Services
                 return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
             }
         }
+
+        public Guid? WorkSpaceId => GetGuidFromHeader("x-workspace-id");
+
+        public Guid? StationId => GetGuidFromHeader("x-station-id");
+
+        public Guid? CompanyId => GetGuidFromHeader("x-company-id");
+
+        private Guid? GetGuidFromHeader(string headerName)
+        {
+            var headerValue = _httpContextAccessor.HttpContext?.Request?.Headers[headerName].FirstOrDefault();
+            if (Guid.TryParse(headerValue, out var parsed))
+                return parsed;
+            return null;
+        }
     }
 }

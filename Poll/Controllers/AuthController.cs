@@ -1,53 +1,47 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Poll.Application.Dtos.Auth;
-using Poll.Application.Interfaces;
-using Poll.Domain.Entity;
-using Poll.Infrastructure.Data;
+﻿//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.EntityFrameworkCore;
+//using Poll.Application.Dtos.Auth;
+//using Poll.Domain.Entity;
+//using Poll.Infrastructure.Data;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AccountController : ControllerBase
-{
-    private readonly AppDbContext _context;
-    private readonly IJwtTokenService _jwtTokenService;
+//[ApiController]
+//[Route("api/[controller]")]
+//public class AccountController : ControllerBase
+//{
+//    private readonly AppDbContext _context;
 
-    public AccountController(AppDbContext context, IJwtTokenService jwtTokenService)
-    {
-        _context = context;
-        _jwtTokenService = jwtTokenService;
-    }
+//    public AccountController(AppDbContext context)
+//    {
+//        _context = context;
+//    }
 
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
-    {
-        if (await _context.Users.AnyAsync(x => x.Email == dto.Email))
-            return BadRequest("Email already exists");
+//    [HttpPost("register")]
+//    public async Task<IActionResult> Register(RegisterDto dto)
+//    {
+//        if (await _context.Users.AnyAsync(x => x.Email == dto.Email))
+//            return BadRequest("Email already exists");
 
-        var user = new UserEntity
-        {
-            UserName = dto.UserName,
-            Email = dto.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
-        };
+//        var user = new UserEntity
+//        {
+//            UserName = dto.UserName,
+//            Email = dto.Email,
+//            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
+//        };
 
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+//        await _context.Users.AddAsync(user);
+//        await _context.SaveChangesAsync();
 
-        return Ok("User registered successfully");
-    }
+//        //return Ok("User registered successfully");
+//    }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto dto)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == dto.Email);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            return Unauthorized("Invalid credentials");
+//    [HttpPost("login")]
+//    public async Task<IActionResult> Login(LoginDto dto)
+//    {
+//        var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == dto.Email);
+//        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+//            return Unauthorized("Invalid credentials");
 
-        // Generate token with userId and userName
-        var roles = new List<string>(); // if you have roles, fill them here
-        var token = _jwtTokenService.GenerateToken(user.Id.ToString(), user.UserName, roles);
-
-        return Ok(new { token });
-    }
-}
+//        var roles = new List<string>();
+//        return Ok(new { roles });
+//    }
+//}

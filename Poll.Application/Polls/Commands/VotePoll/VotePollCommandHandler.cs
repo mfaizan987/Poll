@@ -1,7 +1,8 @@
-﻿using MediatR;
-using Poll.Application.Dtos;
+﻿using AutoMapper;
+using MediatR;
 using Poll.Application.DTOs.Poll;
 using Poll.Application.IRepositories;
+using Poll.Application.Interfaces;
 using Poll.Domain.Entity;
 
 namespace Poll.Application.Polls.Commands.VotePoll
@@ -9,27 +10,35 @@ namespace Poll.Application.Polls.Commands.VotePoll
     public class VotePollCommandHandler : IRequestHandler<VotePollCommand, PollDto>
     {
         private readonly IPollRepository _pollRepository;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IMapper _mapper;
 
-        public VotePollCommandHandler(IPollRepository pollRepository)
+        public VotePollCommandHandler(
+            IPollRepository pollRepository,
+            ICurrentUserService currentUserService,
+            IMapper mapper)
         {
             _pollRepository = pollRepository;
+            _currentUserService = currentUserService;
+            _mapper = mapper;
         }
 
         public async Task<PollDto> Handle(VotePollCommand request, CancellationToken cancellationToken)
         {
+            var userId = _currentUserService.UserId;
+
+            if (userId == Guid.Empty)
+                throw new UnauthorizedAccessException("Invalid token - user id missing.");
+
             var option = await _pollRepository.GetPollOptionByIdAsync(request.PollVote.OptionId, cancellationToken);
 
             if (option == null)
                 throw new Exception("Option not found.");
 
-            var user = await _pollRepository.GetUserByIdAsync(request.PollVote.UserId, cancellationToken);
-            if (user == null)
-                throw new Exception("User not found.");
-
             var vote = new PollVote
             {
                 PollOptionId = option.Id,
-                UserId = request.PollVote.UserId,
+                UserId = userId,
                 Created_At = DateTime.UtcNow
             };
 
@@ -39,25 +48,7 @@ namespace Poll.Application.Polls.Commands.VotePoll
             if (poll == null)
                 throw new Exception("Poll not found.");
 
-            var pollDto = new PollDto
-            {
-                Id = poll.Id,
-                UserId = poll.UserId,
-                UserName = poll.UserName,
-                Question = poll.Question ?? "",
-                Description = poll.Description,
-                StartDate = poll.StartDate,
-                EndDate = poll.EndDate,
-                AllowMultipleAnswers = poll.AllowMultipleAnswers,
-                Options = poll.Options.Select(opt => new PollOptionDto
-                {
-                    Id = opt.Id,
-                    OptionText = opt.OptionText,
-                    VoteCount = opt.PollVotes.Count
-                }).ToList()
-            };
-
-            return pollDto;
+            return _mapper.Map<PollDto>(poll);
         }
     }
 }

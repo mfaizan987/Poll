@@ -1,9 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Poll.Application.DTOs.Poll;
+using Poll.Application.Dtos;
 using Poll.Application.Interfaces;
-using Poll.Application.Polls.Commands.CreatePoll;
 using Poll.Application.Polls.Commands.VotePoll;
 using Poll.Application.Polls.Queries.GetAllPolls;
 using Poll.Application.Polls.Queries.GetPollById;
@@ -25,13 +24,10 @@ namespace Poll.WebAPI.Controllers
         }
 
         [HttpPost("Add")]
-        public async Task<IActionResult> CreatePoll([FromBody] PollDto dto)
+        public async Task<IActionResult> CreatePoll([FromBody] CreatePollDto dto)
         {
             if (_currentUserService.UserId == Guid.Empty)
                 return Unauthorized("Invalid token - user id missing.");
-
-            dto.UserId = _currentUserService.UserId;
-            dto.UserName = _currentUserService.UserName;
 
             var command = new CreatePollCommand { PollDto = dto };
             var createdPoll = await _mediator.Send(command);
@@ -47,7 +43,7 @@ namespace Poll.WebAPI.Controllers
             return Ok(polls);
         }
 
-        [HttpGet("getById{id}")]
+        [HttpGet("getById/{id}")]
         public async Task<IActionResult> GetPollById(Guid id)
         {
             var query = new GetPollByIdQuery(id);
@@ -56,12 +52,25 @@ namespace Poll.WebAPI.Controllers
         }
 
         [HttpPost("Vote")]
-        public async Task<IActionResult> Vote([FromBody] VotePollCommand command)
+        public async Task<IActionResult> Vote([FromBody] PollVoteDto dto)
         {
-            var updatedPoll = await _mediator.Send(command);
-            return Ok(updatedPoll);
+            if (_currentUserService.UserId == Guid.Empty)
+                return Unauthorized("Invalid token - user id missing.");
+
+            try
+            {
+                var command = new VotePollCommand { PollVote = dto };
+                var updatedPoll = await _mediator.Send(command);
+                return Ok(updatedPoll);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
-
-
     }
 }

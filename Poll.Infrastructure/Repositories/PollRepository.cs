@@ -38,9 +38,44 @@ namespace Poll.Infrastructure.Repositories
 
         public async Task VotePollAsync(PollVote vote, CancellationToken cancellationToken)
         {
+            // get the poll option (needed to find the parent poll)
+            var option = await _context.PollOptions
+                .Include(o => o.Poll)
+                .FirstOrDefaultAsync(o => o.Id == vote.PollOptionId, cancellationToken);
+
+            if (option == null)
+                throw new InvalidOperationException("Option not found.");
+
+            var poll = option.Poll;
+
+            if (poll == null)
+                throw new InvalidOperationException("Poll not found for this option.");
+
+            if (poll.AllowMultipleAnswers)
+            {
+                var alreadyVoted = await _context.PollVotes
+                    .AnyAsync(v => v.PollOptionId == vote.PollOptionId && v.UserId == vote.UserId, cancellationToken);
+
+                if (alreadyVoted)
+                    throw new InvalidOperationException("You have already voted for this option.");
+            }
+            else
+            {
+                var alreadyVotedAny = await _context.PollVotes
+                    .Where(v => v.UserId == vote.UserId)
+                    .AnyAsync(v =>
+                        _context.PollOptions.Any(po => po.Id == v.PollOptionId && po.PollId == poll.Id),
+                        cancellationToken);
+
+                if (alreadyVotedAny)
+                    throw new InvalidOperationException("You have already voted in this poll.");
+            }
+
             await _context.PollVotes.AddAsync(vote, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
         }
+
+
 
         public async Task<PollOption?> GetPollOptionByIdAsync(Guid optionId, CancellationToken cancellationToken)
         {
