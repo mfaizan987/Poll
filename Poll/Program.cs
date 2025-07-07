@@ -106,65 +106,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-
-
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//    .AddJwtBearer(options =>
-//    {
-//        options.TokenValidationParameters = new TokenValidationParameters
-//        {
-//            ValidateIssuer = false,
-//            ValidateAudience = false,
-//            ValidateLifetime = true,
-//            ValidateIssuerSigningKey = true,
-//            IssuerSigningKey = new SymmetricSecurityKey(
-//                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-//        };
-
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//    .AddJwtBearer(options =>
-//    {
-//        options.TokenValidationParameters = new TokenValidationParameters
-//        {
-//            ValidateIssuer = false,
-//            ValidateAudience = false,
-//            ValidateLifetime = true,
-//            ValidateIssuerSigningKey = true,
-//            IssuerSigningKey = new SymmetricSecurityKey(
-//                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-//        };
-//        options.Events = new JwtBearerEvents
-//        {
-//            OnChallenge = context =>
-//            {
-
-//                context.HandleResponse();
-
-//                context.Response.StatusCode = 401;
-//                context.Response.ContentType = "application/json";
-
-//                var result = System.Text.Json.JsonSerializer.Serialize(new
-//                {
-//                    message = "Unauthorized: Token is missing or invalid"
-//                });
-
-//                return context.Response.WriteAsync(result);
-//            },
-//            OnForbidden = context =>
-//            {
-//                context.Response.StatusCode = 403;
-//                context.Response.ContentType = "application/json";
-
-//                var result = System.Text.Json.JsonSerializer.Serialize(new
-//                {
-//                    message = "Forbidden: You are not allowed to access this resource"
-//                });
-
-//                return context.Response.WriteAsync(result);
-//            }
-//        };
-//    });
-
 builder.Services.AddAutoMapper(typeof(PollProfile).Assembly);
 
 var app = builder.Build();

@@ -40,20 +40,5 @@ namespace Poll.Application.Polls.Commands.CreatePoll
 
             return resultDto;
         }
-
-
-        //public async Task<PollDto> Handle(CreatePollCommand request, CancellationToken cancellationToken)
-        //{
-        //    var poll = _mapper.Map<PollEntity>(request.PollDto);
-
-        //    poll.UserId = _currentUserService.UserId;
-        //    poll.UserName = _currentUserService.UserName;
-
-        //    var createdPoll = await _pollRepository.CreatePollAsync(poll, cancellationToken);
-
-        //    var resultDto = _mapper.Map<PollDto>(createdPoll);
-
-        //    return resultDto;
-        //}
     }
 }
