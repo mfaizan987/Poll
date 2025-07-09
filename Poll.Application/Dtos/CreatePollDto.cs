@@ -1,6 +1,6 @@
 ﻿using Poll.Application.Dtos;
 
-public class CreatePollDto : BaseDto
+public class CreatePollDto
 {
     public string Question { get; set; } = string.Empty;
     public string? Description { get; set; }

@@ -13,6 +13,5 @@ namespace Poll.Application.Interfaces
          DbSet<PollEntity> Polls { get; set; }
          DbSet<PollOption> PollOptions { get; set; }
          DbSet<PollVote> PollVotes { get; set; }
-        DbSet<UserEntity> Users { get; set; }
     }
 }

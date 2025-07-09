@@ -3,21 +3,34 @@ using Poll.Application.IRepositories;
 using Poll.Domain.Entity;
 using Poll.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
+using Poll.Application.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Poll.Infrastructure.Repositories
 {
     public class PollRepository : BaseRepository<PollEntity>, IPollRepository
     {
-        public PollRepository(AppDbContext context, IHttpContextAccessor http)
+        private readonly ICurrentUserService _currentUser;
+
+        public PollRepository(
+            AppDbContext context,
+            IHttpContextAccessor http,
+            ICurrentUserService currentUser
+        )
             : base(context, http)
         {
+            _currentUser = currentUser;
         }
 
         public async Task<PollEntity?> GetPollByIdAsync(Guid pollId, CancellationToken cancellationToken)
         {
             return await FilteredQuery()
                 .Include(p => p.Options)
-                .ThenInclude(o => o.PollVotes)
+                    .ThenInclude(o => o.PollVotes)
                 .FirstOrDefaultAsync(p => p.Id == pollId, cancellationToken);
         }
 
@@ -38,7 +51,12 @@ namespace Poll.Infrastructure.Repositories
 
         public async Task VotePollAsync(PollVote vote, CancellationToken cancellationToken)
         {
-            // get the poll option (needed to find the parent poll)
+            vote.WorkSpaceId = _currentUser.WorkSpaceId;
+            vote.StationId = _currentUser.StationId;
+            vote.CompanyId = _currentUser.CompanyId;
+            vote.CreatedById = _currentUser.UserId;
+            vote.UpdatedById = _currentUser.UserId;
+
             var option = await _context.PollOptions
                 .Include(o => o.Poll)
                 .FirstOrDefaultAsync(o => o.Id == vote.PollOptionId, cancellationToken);
@@ -54,7 +72,7 @@ namespace Poll.Infrastructure.Repositories
             if (poll.AllowMultipleAnswers)
             {
                 var alreadyVoted = await _context.PollVotes
-                    .AnyAsync(v => v.PollOptionId == vote.PollOptionId && v.UserId == vote.UserId, cancellationToken);
+                    .AnyAsync(v => v.PollOptionId == vote.PollOptionId && v.UserId == vote.UserId && !v.IsDeleted, cancellationToken);
 
                 if (alreadyVoted)
                     throw new InvalidOperationException("You have already voted for this option.");
@@ -62,7 +80,7 @@ namespace Poll.Infrastructure.Repositories
             else
             {
                 var alreadyVotedAny = await _context.PollVotes
-                    .Where(v => v.UserId == vote.UserId)
+                    .Where(v => v.UserId == vote.UserId && !v.IsDeleted)
                     .AnyAsync(v =>
                         _context.PollOptions.Any(po => po.Id == v.PollOptionId && po.PollId == poll.Id),
                         cancellationToken);
@@ -75,7 +93,20 @@ namespace Poll.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
         }
 
+        public async Task VotePollAsync(List<PollVote> votes, CancellationToken cancellationToken)
+        {
+            foreach (var vote in votes)
+            {
+                vote.WorkSpaceId = _currentUser.WorkSpaceId;
+                vote.StationId = _currentUser.StationId;
+                vote.CompanyId = _currentUser.CompanyId;
+                vote.CreatedById = _currentUser.UserId;
+                vote.UpdatedById = _currentUser.UserId;
+            }
 
+            await _context.PollVotes.AddRangeAsync(votes, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
         public async Task<PollOption?> GetPollOptionByIdAsync(Guid optionId, CancellationToken cancellationToken)
         {
@@ -83,10 +114,12 @@ namespace Poll.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Id == optionId, cancellationToken);
         }
 
-        public async Task<UserEntity?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task<List<PollOption>> GetPollOptionsByIdsAsync(List<Guid> optionIds, CancellationToken cancellationToken)
         {
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
+            return await _context.PollOptions
+                .Where(po => optionIds.Contains(po.Id))
+                .Include(po => po.Poll)
+                .ToListAsync(cancellationToken);
         }
     }
 }

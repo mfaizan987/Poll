@@ -40,5 +40,7 @@ namespace Poll.Application.Polls.Commands.CreatePoll
 
             return resultDto;
         }
+
+
     }
 }

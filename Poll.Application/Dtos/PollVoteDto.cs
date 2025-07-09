@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Poll.Application.Dtos
 {
-    public class PollVoteDto : BaseDto
+    public class PollVoteDto
     {
-        public Guid PollId { get; set; }
-        public Guid OptionId { get; set; }
+            public Guid PollId { get; set; }
+            public List<Guid> OptionIds { get; set; }
     }
 }

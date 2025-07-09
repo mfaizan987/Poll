@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Poll.Application.Dtos
 {
-    public class CreatePollOptionDto : BaseDto
+    public class CreatePollOptionDto
     {
         public string OptionText { get; set; } = string.Empty;
 

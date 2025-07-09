@@ -6,6 +6,6 @@ namespace Poll.Application.Polls.Commands.VotePoll
 {
     public class VotePollCommand : IRequest<PollDto>
     {
-      public PollVoteDto PollVote { get; set; }
+      public List<PollVoteDto> PollVotes { get; set; } = new();
     }
 }

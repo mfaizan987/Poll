@@ -52,14 +52,14 @@ namespace Poll.WebAPI.Controllers
         }
 
         [HttpPost("Vote")]
-        public async Task<IActionResult> Vote([FromBody] PollVoteDto dto)
+        public async Task<IActionResult> Vote([FromBody] List<PollVoteDto> dtos)
         {
             if (_currentUserService.UserId == Guid.Empty)
                 return Unauthorized("Invalid token - user id missing.");
 
             try
             {
-                var command = new VotePollCommand { PollVote = dto };
+                var command = new VotePollCommand { PollVotes = dtos };
                 var updatedPoll = await _mediator.Send(command);
                 return Ok(updatedPoll);
             }
@@ -72,5 +72,6 @@ namespace Poll.WebAPI.Controllers
                 return StatusCode(500, "An unexpected error occurred.");
             }
         }
+
     }
 }

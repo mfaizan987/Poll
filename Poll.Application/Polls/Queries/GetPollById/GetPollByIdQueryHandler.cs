@@ -1,39 +1,61 @@
 ﻿using AutoMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Poll.Application.DTOs.Poll;
+using Poll.Application.Interfaces;
 using Poll.Application.IRepositories;
 using Poll.Application.Polls.Queries.GetPollById;
 
 public class GetPollByIdQueryHandler : IRequestHandler<GetPollByIdQuery, PollDto?>
 {
     private readonly IPollRepository _pollRepository;
+    private readonly IAppDbContext _dbContext;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public GetPollByIdQueryHandler(IPollRepository pollRepository, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+    public GetPollByIdQueryHandler(
+        IPollRepository pollRepository,
+        IAppDbContext dbContext,
+        ICurrentUserService currentUserService,
+        IMapper mapper)
     {
         _pollRepository = pollRepository;
+        _dbContext = dbContext;
+        _currentUserService = currentUserService;
         _mapper = mapper;
-        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<PollDto?> Handle(GetPollByIdQuery request, CancellationToken cancellationToken)
     {
-        var httpContext = _httpContextAccessor.HttpContext;
-
-        var workspaceId = GetGuidFromHeader(httpContext, "x-workspace-id");
-        var stationId = GetGuidFromHeader(httpContext, "x-station-id");
-        var companyId = GetGuidFromHeader(httpContext, "x-company-id");
-
         var pollEntity = await _pollRepository.GetPollByIdAsync(request.PollId, cancellationToken);
+        if (pollEntity == null) return null;
 
-        return pollEntity != null ? _mapper.Map<PollDto>(pollEntity) : null;
-    }
+        var pollDto = _mapper.Map<PollDto>(pollEntity);
 
-    private Guid? GetGuidFromHeader(HttpContext? httpContext, string headerName)
-    {
-        var headerValue = httpContext?.Request.Headers[headerName].FirstOrDefault();
-        return Guid.TryParse(headerValue, out var parsed) ? parsed : null;
+        var userId = _currentUserService.UserId;
+        var optionIds = pollEntity.Options.Select(o => o.Id).ToList();
+
+        var userVotes = await _dbContext.PollVotes
+            .Where(v =>
+                optionIds.Contains(v.PollOptionId) &&
+                v.UserId == userId &&
+                !v.IsDeleted)
+            .Include(v => v.PollOption)
+            .ToListAsync(cancellationToken);
+
+        if (userVotes.Any())
+        {
+            pollDto.HasVoted = true;
+            pollDto.UserVotedOptionId = userVotes.Select(v => v.PollOptionId).ToList();
+            pollDto.UserVotedOptionText = userVotes.Select(v => v.PollOption.OptionText).ToList();
+        }
+        else
+        {
+            pollDto.HasVoted = false;
+            pollDto.UserVotedOptionId = new List<Guid>();
+            pollDto.UserVotedOptionText = new List<string>();
+        }
+
+        return pollDto;
     }
 }
