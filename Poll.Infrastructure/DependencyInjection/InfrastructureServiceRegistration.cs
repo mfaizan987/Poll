@@ -23,7 +23,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
         services.AddScoped<IPollRepository, PollRepository>();
-
+        
         return services;
     }
 }
